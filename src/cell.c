@@ -196,8 +196,15 @@ int getSMCellByXYZ(Cell* cells, int* xyz){
     t_xyz[1] = xyz[1]-1;
     t_xyz[2] = xyz[2]-1;
 
+    int judge = (xyz[0]==0&&xyz[1]>=0&&xyz[1]<xyzCellNum[1]&&xyz[2]>=0&&xyz[2]<xyzCellNum[2])
+            +   ((xyz[0]==xyzCellNum[0]-1)&&xyz[1]>=0&&xyz[1]<xyzCellNum[1]&&xyz[2]>=0&&xyz[2]<xyzCellNum[2])
+            +   (xyz[1]==0&&xyz[0]>=0&&xyz[0]<xyzCellNum[0]&&xyz[2]>=0&&xyz[2]<xyzCellNum[2])
+            +   ((xyz[1]==xyzCellNum[1]-1)&&xyz[0]>=0&&xyz[0]<xyzCellNum[0]&&xyz[2]>=0&&xyz[2]<xyzCellNum[2])
+            +   (xyz[2]==0&&xyz[1]>=0&&xyz[1]<xyzCellNum[1]&&xyz[0]>=0&&xyz[0]<xyzCellNum[0])
+            +   ((xyz[2]==xyzCellNum[2]-1)&&xyz[1]>=0&&xyz[1]<xyzCellNum[1]&&xyz[0]>=0&&xyz[0]<xyzCellNum[0]);
+
     //如果在共享内存范围内
-    if(((xyz[0]==0) || (xyz[0]==xyzCellNum[0]-1))&&((xyz[1]==0) || (xyz[1]==xyzCellNum[1]-1))&&((xyz[2]==0) || (xyz[2]==xyzCellNum[2]-1))){
+    if(judge){
         
 
         // Z轴正方向的共享内存区域
