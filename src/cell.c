@@ -232,7 +232,7 @@ int getSMCellByXYZ(Cell* cells, int* xyz){
     else
         return -1; //不在共享内存区域内，返回-1
 
-    return cell;
+    return cell-1;
 
 
 } 
