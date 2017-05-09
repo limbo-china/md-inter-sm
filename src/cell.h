@@ -38,4 +38,7 @@ int findCellByXYZ(Cell* cells, int* xyz);
 // 根据细胞序号返回细胞位置xyz,与函数findCellByXYZ互为逆过程
 void getXYZByCell(Cell* cells,int* xyz, int num);
 
+// // 根据细胞位置xyz,返回在共享内存中的细胞序号,若不是共享内存内,则返回-1
+int getSMCellByXYZ(Cell* cells, int* xyz);
+
 #endif

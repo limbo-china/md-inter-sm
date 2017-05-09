@@ -35,6 +35,20 @@ void initCells(struct SpacialStr* space, struct PotentialStr* potential, struct 
    	// 初始化各细胞中原子数为0
    	for (int i = 0; i < cells->totalCellNum; i++)
       	cells->atomNum[i] = 0;
+
+    ///test 测试cell坐标正确性
+    if(getMyRank()== 5){
+        int3 xyz;
+        int j,k;
+        for(int i = 0; i < cells->totalCellNum; i++)
+        {
+            getXYZByCell(cells,xyz, i);
+            printf("i: %d xyz:%d %d %d\n",i,xyz[0],xyz[1],xyz[2]);
+            j = findCellByXYZ(cells, xyz);
+            k = getSMCellByXYZ(cells, xyz);
+            printf("j: %d k: %d xyz:%d %d %d\n\n",j,k,xyz[0],xyz[1],xyz[2]);
+        }
+    }
 }
 
 // 根据原子坐标找到所在的细胞
@@ -161,3 +175,55 @@ void getXYZByCell(Cell* cells,int *xyz, int num){
         xyz[2]--;
     }
 }
+
+// 根据细胞位置xyz,返回在共享内存中的细胞序号,若不是共享内存内,则返回-1
+int getSMCellByXYZ(Cell* cells, int* xyz){
+
+    int cell;
+
+    int t_myCellNum = (cells->xyzCellNum[0]-2) * (cells->xyzCellNum[1]-2) * (cells->xyzCellNum[2]-2);
+    int *xyzCellNum = cells->xyzCellNum;
+
+    int t_xyzNum[3];
+    int t_xyz[3];
+    t_xyzNum[0] = xyzCellNum[0]-2;
+    t_xyzNum[1] = xyzCellNum[1]-2;
+    t_xyzNum[2] = xyzCellNum[2]-2;
+
+    t_xyz[0] = xyz[0]-1;
+    t_xyz[1] = xyz[1]-1;
+    t_xyz[2] = xyz[2]-1;
+
+    //如果在共享内存范围内
+    if(((xyz[0]==0) || (xyz[0]==xyzCellNum[0]-1))&&((xyz[1]==0) || (xyz[1]==xyzCellNum[1]-1))&&((xyz[2]==0) || (xyz[2]==xyzCellNum[2]-1))){
+        
+
+        // Z轴正方向的共享内存区域
+        if (t_xyz[2] == t_xyzNum[2])
+            cell = t_myCellNum + 2*t_xyzNum[2]*t_xyzNum[1] + 2*t_xyzNum[2]*(t_xyzNum[0]+2) +
+                (t_xyzNum[0]+2)*(t_xyzNum[1]+2) + (t_xyzNum[0]+2)*(t_xyz[1]+1) + (t_xyz[0]+1);
+        // Z轴负方向的共享内存区域
+        else if (t_xyz[2] == -1)
+            cell = t_myCellNum + 2*t_xyzNum[2]*t_xyzNum[1] + 2*t_xyzNum[2]*(t_xyzNum[0]+2) +
+                (t_xyzNum[0]+2)*(t_xyz[1]+1) + (t_xyz[0]+1);
+        // Y轴正方向的共享内存区域
+        else if (t_xyz[1] == t_xyzNum[1])
+            cell = t_myCellNum + 2*t_xyzNum[2]*t_xyzNum[1] + t_xyzNum[2]*(t_xyzNum[0]+2) +
+                (t_xyzNum[0]+2)*t_xyz[2] + (t_xyz[0]+1);
+       // Y轴负方向的共享内存区域
+        else if (t_xyz[1] == -1)
+            cell = t_myCellNum + 2*t_xyzNum[2]*t_xyzNum[1] + t_xyz[2]*(t_xyzNum[0]+2) + (t_xyz[0]+1);
+       // X轴正方向的共享内存区域
+        else if (t_xyz[0] == t_xyzNum[0])
+            cell = t_myCellNum + t_xyzNum[1]*t_xyzNum[2] + t_xyz[2]*t_xyzNum[1] + t_xyz[1];
+       // X轴负方向的共享内存区域
+        else if (t_xyz[0] == -1)
+            cell = t_myCellNum + t_xyz[2]*t_xyzNum[1] + t_xyz[1];
+    }
+    else
+        return -1; //不在共享内存区域内，返回-1
+
+    return cell;
+
+
+} 
