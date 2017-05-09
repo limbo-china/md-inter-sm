@@ -2,9 +2,11 @@
 
 #include "space.h"
 #include "potential.h"
+#include "mympi.h"
 
 #include <math.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 // 初始化细胞链表
 void initCells(struct SpacialStr* space, struct PotentialStr* potential, struct CellStr** cel){
