@@ -44,15 +44,46 @@ void initComm(DataComm** comm, struct SpacialStr* space, struct CellStr* cells){
     		(xyzCellNum[0]+2)*(xyzCellNum[2]+2)));
     datacomm->bufSize = 2*maxComm*MAXPERCELL*sizeof(AtomData); //可改进为每个面需要自己的细胞数量
 
-    datacomm->commCellNum[X_NEG] = 2*(xyzCellNum[1]+2)*(xyzCellNum[2]+2);
-   	datacomm->commCellNum[X_POS] = 2*(xyzCellNum[1]+2)*(xyzCellNum[2]+2);
-   	datacomm->commCellNum[Y_NEG] = 2*(xyzCellNum[0]+2)*(xyzCellNum[2]+2);
-   	datacomm->commCellNum[Y_POS]  = 2*(xyzCellNum[0]+2)*(xyzCellNum[2]+2);
-   	datacomm->commCellNum[Z_NEG]  = 2*(xyzCellNum[0]+2)*(xyzCellNum[1]+2);
-   	datacomm->commCellNum[Z_POS]  = 2*(xyzCellNum[0]+2)*(xyzCellNum[1]+2);
+    datacomm->commCellNum[X_NEG] = 2*(xyzCellNum[1]+2)*(xyzCellNum[2]+2)-xyzCellNum[1]*xyzCellNum[2];
+   	datacomm->commCellNum[X_POS] = 2*(xyzCellNum[1]+2)*(xyzCellNum[2]+2)-xyzCellNum[1]*xyzCellNum[2];
+   	datacomm->commCellNum[Y_NEG] = 2*(xyzCellNum[0]+2)*(xyzCellNum[2]+2)-xyzCellNum[0]*xyzCellNum[2];
+   	datacomm->commCellNum[Y_POS]  = 2*(xyzCellNum[0]+2)*(xyzCellNum[2]+2)-xyzCellNum[0]*xyzCellNum[2];
+   	datacomm->commCellNum[Z_NEG]  = 2*(xyzCellNum[0]+2)*(xyzCellNum[1]+2)-xyzCellNum[0]*xyzCellNum[1];
+   	datacomm->commCellNum[Z_POS]  = 2*(xyzCellNum[0]+2)*(xyzCellNum[1]+2)-xyzCellNum[0]*xyzCellNum[1];
 
-   	for (int dimen=0; dimen<6; dimen++)
+    datacomm->sharedCellNum[X_NEG] = xyzCellNum[1]*xyzCellNum[2];
+    datacomm->sharedCellNum[X_POS] = xyzCellNum[1]*xyzCellNum[2];
+    datacomm->sharedCellNum[Y_NEG] = xyzCellNum[0]*xyzCellNum[2];
+    datacomm->sharedCellNum[Y_POS]  = xyzCellNum[0]*xyzCellNum[2];
+    datacomm->sharedCellNum[Z_NEG]  = xyzCellNum[0]*xyzCellNum[1];
+    datacomm->sharedCellNum[Z_POS]  = xyzCellNum[0]*xyzCellNum[1];
+
+   	for (int dimen=0; dimen<6; dimen++){
       datacomm->commCells[dimen] = findCommCells(cells, dimen, datacomm->commCellNum[dimen]);
+      datacomm->sharedCells[dimen] = findSMCells(cells, dimen, datacomm->sharedCellNum[dimen]);
+    }
+
+    //test
+    int n,m,p;
+    int3 xyz;
+    if (ifZeroRank())
+    {
+        n = datacomm->commCellNum[1];
+        m = datacomm->sharedCellNum[1];
+        printf("commnum: %d smnum: %d\n",n,m);
+        printf("comm:\n");
+        for(int i =0;i<n;i++){
+            p = datacomm->commCells[1][i];
+            getXYZByCell(cells, xyz, p);
+            printf("cell:%d xyz:%d %d %d\n",p,xyz[0],xyz[1],xyz[2]);    
+        }
+        printf("sm:\n");
+        for(int i =0;i<m;i++){
+            p = datacomm->sharedCells[1][i];
+            getXYZByCell(cells, xyz, p);
+            printf("cell:%d xyz:%d %d %d\n",p,xyz[0],xyz[1],xyz[2]);    
+        }
+    }
 }
 
 // 找出指定维度上所有通信部分的细胞
@@ -78,9 +109,41 @@ int* findCommCells(struct CellStr* cells, enum Neighbor dimen, int num){
    	for (xyz[0]=xBegin; xyz[0]<xEnd; xyz[0]++)
       	for (xyz[1]=yBegin; xyz[1]<yEnd; xyz[1]++)
          	for (xyz[2]=zBegin; xyz[2]<zEnd; xyz[2]++)
-            	commcells[n++] = findCellByXYZ(cells, xyz);
+            //若不是共享区域内的细胞
+              if(getSMCellByXYZ(cells, xyz) == -1)
+            	   commcells[n++] = findCellByXYZ(cells, xyz);
    	//assert
    	return commcells;
+}
+
+// 找出指定维度上所有共享内存部分的细胞
+int* findSMCells(struct CellStr* cells, enum Neighbor dimen, int num){
+
+    int* smcells = malloc(num*sizeof(int));
+    int xBegin = -1;
+    int xEnd   = cells->xyzCellNum[0]+1;
+    int yBegin = -1;
+    int yEnd   = cells->xyzCellNum[1]+1;
+    int zBegin = -1;
+    int zEnd   = cells->xyzCellNum[2]+1;
+
+    if (dimen == X_NEG) xEnd = xBegin+2;
+    if (dimen == X_POS) xBegin = xEnd-2;
+    if (dimen == Y_NEG) yEnd = yBegin+2;
+    if (dimen == Y_POS) yBegin = yEnd-2;
+    if (dimen == Z_NEG) zEnd = zBegin+2;
+    if (dimen == Z_POS) zBegin = zEnd-2;
+
+    int n = 0;
+    int3 xyz;
+    for (xyz[0]=xBegin; xyz[0]<xEnd; xyz[0]++)
+        for (xyz[1]=yBegin; xyz[1]<yEnd; xyz[1]++)
+            for (xyz[2]=zBegin; xyz[2]<zEnd; xyz[2]++)
+            //若是共享区域内的细胞
+              if(getSMCellByXYZ(cells, xyz) != -1)
+                   smcells[n++] = findCellByXYZ(cells, xyz);
+    //assert
+    return smcells;
 }
 
 // 将待发送的原子数据加入缓冲区内,返回加入缓冲区内的数据个数

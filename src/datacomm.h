@@ -23,6 +23,12 @@ typedef struct DataCommStr{
 	// 各方向上通信的细胞链表
 	int *commCells[6];
 
+	// 各方向上内存共享的细胞数量
+	int sharedCellNum[6];
+
+	// 各方向上内存共享的细胞链表
+	int *sharedCells[6];
+
 }DataComm;
 
 // 需要通信的原子数据
@@ -43,6 +49,9 @@ void initComm(DataComm** comm, struct SpacialStr* space, struct CellStr* cells);
 
 // 找出指定维度上所有通信部分的细胞
 int* findCommCells(struct CellStr* cells, enum Neighbor dimen, int num);
+
+// 找出指定维度上所有共享内存部分的细胞
+int* findSMCells(struct CellStr* cells, enum Neighbor dimen, int num);
 
 // 将待发送的原子数据加入缓冲区内,返回加入缓冲区内的数据个数
 int addSendData(struct SystemStr* sys, void* buf, enum Neighbor dimen);

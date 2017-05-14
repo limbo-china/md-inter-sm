@@ -28,7 +28,6 @@ typedef struct CellStr{
 // 初始化细胞链表
 void initCells(struct SpacialStr* space, struct PotentialStr* potential, struct CellStr** cel);
 
-
 // 根据坐标找到所在的细胞，返回细胞序号，即该空间中第几个细胞
 int findCellByCoord(Cell* cells, struct SpacialStr* space, double3 coord);
 
