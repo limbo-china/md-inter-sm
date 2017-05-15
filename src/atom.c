@@ -241,7 +241,7 @@ void adjustAtoms(struct SystemStr* sys){
 
     // 内存共享，直接取数据，而不是点对点通信
     //int bufsize = sys->datacomm->bufSize;
-    char* PutBuf = (char *)sys->datacomm->usrbuf;
+    char* PutBuf = (char *)sys->usrbuf;
     //char* negGetBuf = NULL;
     //char* posGetBuf = NULL;
    
@@ -435,7 +435,7 @@ void dataToSmBuf(struct SystemStr* sys){
 
     //int allnum =0;
 
-    AtomData* smbuf = (AtomData*)(sys->datacomm->smbuf+6*sizeof(int)); 
+    AtomData* smbuf = (AtomData*)(sys->smbuf+6*sizeof(int)); 
     //int3 xyz;      
 
     for(int dimen=0;dimen<6;dimen++){
@@ -462,7 +462,7 @@ void dataToSmBuf(struct SystemStr* sys){
             }
         }
 
-        memcpy(sys->datacomm->smbuf+dimen*sizeof(int),&atomnum,sizeof(int));
+        memcpy(sys->smbuf+dimen*sizeof(int),&atomnum,sizeof(int));
 
     }
 }
