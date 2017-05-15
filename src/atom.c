@@ -516,15 +516,7 @@ void processSmData(struct SystemStr* sys, void *smbuf, enum Neighbor dimen){
             momenta[i] = buffer[num].momenta[i];
         }
         id = buffer[num].id;
-        
-        // 将原子分配至对应的细胞中
-         if(getMyRank()==1){
-            printf("num :%d \n",num );
-            printf("pos: %g,%g,%g\n",pos[0],pos[1],pos[2] );
-            printf("momenta: %g,%g,%g\n",momenta[0],momenta[1],momenta[2] );
-        }
-
-        assignAtom(id, pos, sys, momenta);    
+             
     }
      //printf("rank:%d test2\n ",getMyRank());
 }
