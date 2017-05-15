@@ -241,7 +241,7 @@ void adjustAtoms(struct SystemStr* sys){
 
     // 内存共享，直接取数据，而不是点对点通信
     //int bufsize = sys->datacomm->bufSize;
-    char* PutBuf = (char *)sys->usrbuf;
+    char* PutBuf = (char *)sys->datacomm->usrbuf;
     //char* negGetBuf = NULL;
     //char* posGetBuf = NULL;
    
@@ -435,7 +435,7 @@ void dataToSmBuf(struct SystemStr* sys){
 
     //int allnum =0;
 
-    AtomData* smbuf = (AtomData*)(sys->smbuf+6*sizeof(int)); 
+    AtomData* smbuf = (AtomData*)(sys->datacomm->smbuf+6*sizeof(int)); 
     //int3 xyz;      
 
     for(int dimen=0;dimen<6;dimen++){
@@ -454,7 +454,7 @@ void dataToSmBuf(struct SystemStr* sys){
             for (int n=cell*MAXPERCELL,count=0; count<sys->cells->atomNum[cell]; n++,count++)
             {
                 for(int i=0;i<3;i++){
-                    smbuf[atomnum].pos[i] = sys->atoms->pos[n][i]+boundaryAdjust[i];
+                    smbuf[atomnum].pos[i] = sys->atoms->pos[n][i];
                     smbuf[atomnum].momenta[i] = sys->atoms->momenta[n][i];
                 }
                 smbuf[atomnum].id  = sys->atoms->id[n];
@@ -462,7 +462,7 @@ void dataToSmBuf(struct SystemStr* sys){
             }
         }
 
-        memcpy(sys->smbuf+dimen*sizeof(int),&atomnum,sizeof(int));
+        memcpy(sys->datacomm->smbuf+dimen*sizeof(int),&atomnum,sizeof(int));
 
     }
 }
