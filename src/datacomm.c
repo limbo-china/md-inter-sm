@@ -64,26 +64,26 @@ void initComm(DataComm** comm, struct SpacialStr* space, struct CellStr* cells){
     }
 
     //test
-    int n,m,p;
-    int3 xyz;
-    if (ifZeroRank())
-    {
-        n = datacomm->commCellNum[1];
-        m = datacomm->sharedCellNum[1];
-        printf("commnum: %d smnum: %d\n",n,m);
-        printf("comm:\n");
-        for(int i =0;i<n;i++){
-            p = datacomm->commCells[1][i];
-            getXYZByCell(cells, xyz, p);
-            printf("cell:%d xyz:%d %d %d\n",p,xyz[0],xyz[1],xyz[2]);    
-        }
-        printf("sm:\n");
-        for(int i =0;i<m;i++){
-            p = datacomm->sharedCells[1][i];
-            getXYZByCell(cells, xyz, p);
-            printf("cell:%d xyz:%d %d %d\n",p,xyz[0],xyz[1],xyz[2]);    
-        }
-    }
+    // int n,m,p;
+    // int3 xyz;
+    // if (ifZeroRank())
+    // {
+    //     n = datacomm->commCellNum[1];
+    //     m = datacomm->sharedCellNum[1];
+    //     printf("commnum: %d smnum: %d\n",n,m);
+    //     printf("comm:\n");
+    //     for(int i =0;i<n;i++){
+    //         p = datacomm->commCells[1][i];
+    //         getXYZByCell(cells, xyz, p);
+    //         printf("cell:%d xyz:%d %d %d\n",p,xyz[0],xyz[1],xyz[2]);    
+    //     }
+    //     printf("sm:\n");
+    //     for(int i =0;i<m;i++){
+    //         p = datacomm->sharedCells[1][i];
+    //         getXYZByCell(cells, xyz, p);
+    //         printf("cell:%d xyz:%d %d %d\n",p,xyz[0],xyz[1],xyz[2]);    
+    //     }
+    // }
 }
 
 // 找出指定维度上所有通信部分的细胞

@@ -14,6 +14,8 @@
 #include "energy.h"
 #include "datacomm.h"
 
+#include <mpi.h>
+
 // 所模拟的分子体系对于的结构体
 typedef struct SystemStr
 {  
@@ -30,6 +32,12 @@ typedef struct SystemStr
    	Cell* cells;       	// 选取linked-cell数据结构, 存储各cell相关信息数据
 
    	Atom* atoms;          // 存储原子的相关信息数据
+
+   	char* smBuf ;	// 共享缓冲区起始地址
+	char* usrBuf;
+		
+	MPI_Win win1;	// 窗口1
+	MPI_Win win2;	// 窗口2
      	 
 } System;
 

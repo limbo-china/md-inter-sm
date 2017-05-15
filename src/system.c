@@ -26,7 +26,8 @@ System* initSystem(Parameter* para){
     initComm(&sys->datacomm, sys->space, sys->cells);
 
     
-
+    sys->smBuf = NULL;
+    sys->usrBuf = NULL;
     //MPI_Allreduce(&sys->atoms->myNum, &sys->atoms->totalNum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
     //printTotalAtom(stdout,sys->atoms);
 

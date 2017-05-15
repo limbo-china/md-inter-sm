@@ -201,7 +201,7 @@ void initTemperature(struct SystemStr* sys, struct ParameterStr* para){
 }
 
 // 调整原子所在细胞，并进行原子数据通信(去掉了序号排序)
-void adjustAtoms(struct SystemStr* sys, void * buf, MPI_Win *win){
+void adjustAtoms(struct SystemStr* sys){
 
     // 清空本空间外的细胞
 
@@ -237,7 +237,7 @@ void adjustAtoms(struct SystemStr* sys, void * buf, MPI_Win *win){
 
     // 内存共享，直接取数据，而不是点对点通信
     //int bufsize = sys->datacomm->bufSize;
-    char* PutBuf = (char *)buf;
+    char* PutBuf = (char *)sys->usrbuf;
     //char* negGetBuf = NULL;
     //char* posGetBuf = NULL;
    
@@ -289,7 +289,7 @@ void adjustAtoms(struct SystemStr* sys, void * buf, MPI_Win *win){
         addSendData(sys, PutBuf+2*sizeof(int)+negPutSize*sizeof(AtomData), pos_dimen);
         //endTimer(adjustatom);
         //printf("%d: \n",num );
-       MPI_Win_fence(0,*win);
+       MPI_Win_fence(0,sys->win2);
         //int pos_send = addSendData(sys, posSendBuf, dimen_POSI);
         //printf("addsend\n");
         // if (ifZeroRank())
@@ -300,7 +300,7 @@ void adjustAtoms(struct SystemStr* sys, void * buf, MPI_Win *win){
         // 调用mpi_sendrecv函数，与邻居进程发送与接收原子数据
         //printf("1\n");
         
-        MPI_Win_shared_query(*win,neg_neighbor, &r1, &t1, &getbuf1);
+        MPI_Win_shared_query(sys->win2,neg_neighbor, &r1, &t1, &getbuf1);
         
         //printf("%d \n",recv );
 
@@ -322,7 +322,7 @@ void adjustAtoms(struct SystemStr* sys, void * buf, MPI_Win *win){
         //else{
 
            // printf("start recv2 query\n");
-            MPI_Win_shared_query(*win,pos_neighbor, &r2, &t2, &getbuf2);
+            MPI_Win_shared_query(sys->win2,pos_neighbor, &r2, &t2, &getbuf2);
             //printf("recv2 query success  r2:%d\n",r2);
             memcpy((char *)&recv2,getbuf2,sizeof(int));
             //printf("recv2: %d\n",recv2 );
@@ -365,10 +365,7 @@ void adjustAtoms(struct SystemStr* sys, void * buf, MPI_Win *win){
         // }
              //free(posGetBuf);free(negGetBuf);
              //printf("4\n");
-             MPI_Win_fence(0,*win);
-        
- 
-        
+             MPI_Win_fence(0,sys->win2);     
     }
     endTimer(communication);
 

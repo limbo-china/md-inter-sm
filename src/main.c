@@ -38,14 +38,19 @@ int main(int argc, char** argv){
 	//sleep(5);
 	System* sys = initSystem(para);
 
-	char* PutBuf = NULL;
-	MPI_Win win;
+	int smBufSize = (sys->cells->xyzCellNum[0]*sys->cells->xyzCellNum[1]*
+		sys->cells->xyzCellNum[2]-(sys->cells->xyzCellNum[0]-2)*
+		(sys->cells->xyzCellNum[1]-2)*(sys->cells->xyzCellNum[2]-2))*
+		MAXPERCELL*sizeof(AtomData);
+
 
 	//printf("size: %d\n",sys->datacomm->bufSize );
+	MPI_Win_allocate_shared(smBufSize, sizeof(char),
+          MPI_INFO_NULL,MPI_COMM_WORLD, &sys->smBuf, &sys->win1);
 	MPI_Win_allocate_shared(sys->datacomm->bufSize+2*sizeof(int), sizeof(char),
-          MPI_INFO_NULL,MPI_COMM_WORLD, &PutBuf, &win);
+          MPI_INFO_NULL,MPI_COMM_WORLD, &sys->usrBuf, &sys->win2);
 
-	adjustAtoms(sys,PutBuf,&win);
+	adjustAtoms(sys);
 	computeForce(sys);
 
 	for(int i=1;i<=para->stepNums;i++){
@@ -54,7 +59,7 @@ int main(int argc, char** argv){
     	updatePosition(sys, para);
 
     	//beginTimer(adjustatom);
-    	adjustAtoms(sys,PutBuf,&win);
+    	adjustAtoms(sys);
     	//endTimer(adjustatom);
 
     	beginTimer(force);
@@ -76,7 +81,8 @@ int main(int argc, char** argv){
     }
 	endTimer(loop);
 	
-	MPI_Win_free(&win);
+	MPI_Win_free(&sys->win1);
+	MPI_Win_free(&sys->win2);
 
 	endTimer(total);
 
