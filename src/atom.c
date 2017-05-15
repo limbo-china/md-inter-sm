@@ -502,6 +502,7 @@ void processSmData(struct SystemStr* sys, void *smbuf, enum Neighbor dimen){
         //     printf("pos: %g,%g,%g\n",pos[0],pos[1],pos[2] );
         //     printf("momenta: %g,%g,%g\n",momenta[0],momenta[1],momenta[2] );
         // }
+        printf("rank:%d test\n ",getMyRank());
         assignAtom(id, pos, sys, momenta);    
     }
 }
