@@ -449,7 +449,7 @@ void dataToSmBuf(struct SystemStr* sys){
             int cell = sharedCells[nCell];
             //getXYZByCell(sys->cells, xyz, cell);
             //int smCell = getSMCellByXYZ(sys->cells, xyz);
-            //int m = smCell * MAXPERCELL;
+             //int m = smCell * MAXPERCELL;
             //atomnum += sys->cells->atomNum[cell];
 
             for (int n=cell*MAXPERCELL,count=0; count<sys->cells->atomNum[cell]; n++,count++)
@@ -480,7 +480,7 @@ void processSmData(struct SystemStr* sys, void *smbuf, enum Neighbor dimen){
         atomnum_start =0;
     else
         memcpy((char *)&atomnum_start,start+(dimen-1)*sizeof(int),sizeof(int));
-    printf("atomnum_start:%d atomnum_end:%d\n ",atomnum_start,atomnum_end);
+    printf("rank:%d atomnum_start:%d atomnum_end:%d\n ",getMyRank(),atomnum_start,atomnum_end);
     AtomData* buffer = (AtomData*) (smbuf+6*sizeof(int)); 
 
     double3 pos; //原子坐标
@@ -497,11 +497,11 @@ void processSmData(struct SystemStr* sys, void *smbuf, enum Neighbor dimen){
         id = buffer[num].id;
         
         // 将原子分配至对应的细胞中
-         if(getMyRank()==2){
-            printf("num :%d \n",num );
-            printf("pos: %g,%g,%g\n",pos[0],pos[1],pos[2] );
-            printf("momenta: %g,%g,%g\n",momenta[0],momenta[1],momenta[2] );
-        }
+        //  if(getMyRank()==2){
+        //     printf("num :%d \n",num );
+        //     printf("pos: %g,%g,%g\n",pos[0],pos[1],pos[2] );
+        //     printf("momenta: %g,%g,%g\n",momenta[0],momenta[1],momenta[2] );
+        // }
         assignAtom(id, pos, sys, momenta);    
     }
 }
