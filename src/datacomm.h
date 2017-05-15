@@ -23,6 +23,9 @@ typedef struct DataCommStr{
 	// 各方向上通信的细胞链表
 	int *commCells[6];
 
+	// 内存共享细胞数量
+	int smsize;
+
 	// 各方向上内存共享的细胞数量
 	int sharedCellNum[6];
 

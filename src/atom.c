@@ -16,6 +16,9 @@
 #include <string.h>
 #include <mpi.h>
 
+static void dataToSmBuf(struct SystemStr* sys);
+static void processSmData(struct SystemStr* sys, void *smbuf, enum Neighbor dimen);
+
 // 初始化原子信息结构体
 void initAtoms(struct CellStr* cells, Atom** ato){
 
@@ -204,7 +207,6 @@ void initTemperature(struct SystemStr* sys, struct ParameterStr* para){
 void adjustAtoms(struct SystemStr* sys){
 
     // 清空本空间外的细胞
-
     for (int i=sys->cells->myCellNum; i<sys->cells->totalCellNum; i++)
         sys->cells->atomNum[i] = 0;
 
@@ -228,6 +230,8 @@ void adjustAtoms(struct SystemStr* sys){
     //printTotalAtom(stdout,sys->atoms);
     //printf("adjust\n");
 
+    dataToSmBuf(sys);
+
     // 与各邻居进程进行通信
     //enum Neighbor dimen;
     int neg_neighbor,pos_neighbor;
@@ -247,6 +251,10 @@ void adjustAtoms(struct SystemStr* sys){
     char *getbuf1 = NULL;
     char *getbuf2= NULL;
 
+    char *smbuf1 = NULL;
+    char *smbuf2 = NULL;
+
+    //开始计算通信时间
     beginTimer(communication);
     for(int dimen = 0;dimen<3;dimen++){
 
@@ -299,7 +307,15 @@ void adjustAtoms(struct SystemStr* sys){
 
         // 调用mpi_sendrecv函数，与邻居进程发送与接收原子数据
         //printf("1\n");
-        
+
+       MPI_Win_shared_query(sys->win1,neg_neighbor, &r1, &t1, &smbuf1);
+       processSmData(sys, smbuf1, pos_dimen);
+
+       MPI_Win_shared_query(sys->win1,pos_neighbor, &r2, &t2, &smbuf2);
+       processSmData(sys, smbuf2, neg_dimen);
+
+       MPI_Win_fence(0,sys->win1); 
+  
         MPI_Win_shared_query(sys->win2,neg_neighbor, &r1, &t1, &getbuf1);
         
         //printf("%d \n",recv );
@@ -412,3 +428,79 @@ void moveAtom(struct CellStr* cells, Atom* atoms, int n, int cell1, int cell2){
     if (cell2 > cells->myCellNum) //此处不应该是>=??????
         atoms->myNum--;
 }
+
+void dataToSmBuf(struct SystemStr* sys){
+
+    int atomnum=0;
+
+    //int allnum =0;
+
+    AtomData* smbuf = (AtomData*)(sys->smbuf+6*sizeof(int)); 
+    //int3 xyz;      
+
+    for(int dimen=0;dimen<6;dimen++){
+
+        int sharedCellNum = sys->datacomm->sharedCellNum[dimen];  
+        int* sharedCells = sys->datacomm->sharedCells[dimen];
+
+        for (int nCell=0; nCell<sharedCellNum; nCell++)
+        {
+            int cell = sharedCells[nCell];
+            //getXYZByCell(sys->cells, xyz, cell);
+            //int smCell = getSMCellByXYZ(sys->cells, xyz);
+            //int m = smCell * MAXPERCELL;
+            //atomnum += sys->cells->atomNum[cell];
+
+            for (int n=cell*MAXPERCELL,count=0; count<sys->cells->atomNum[cell]; n++,count++)
+            {
+                for(int i=0;i<3;i++){
+                    smbuf[atomnum].pos[i] = sys->atoms->pos[n][i]+boundaryAdjust[i];
+                    smbuf[atomnum].momenta[i] = sys->atoms->momenta[n][i];
+                }
+                smbuf[atomnum].id  = sys->atoms->id[n];
+                atomnum++;
+            }
+        }
+
+        memcpy(sys->smbuf+dimen*sizeof(int),&atomnum,sizeof(int));
+
+    }
+}
+
+void processSmData(struct SystemStr* sys, void *smbuf, enum Neighbor dimen){
+
+    int atomnum_end = 0;
+    int atomnum_start = 0;
+    char *start =(char *)smbuf;
+    memcpy((char *)&atomnum_end,start+dimen*sizeof(int),sizeof(int));
+
+    if(dimen == 0)
+        atomnum_start =0;
+    else
+        memcpy((char *)&atomnum_start,start+(dimen-1)*sizeof(int),sizeof(int));
+
+    AtomData* buffer = (AtomData*) (smbuf+6*sizeof(int)); 
+
+    double3 pos; //原子坐标
+    double3 momenta; //原子动量
+    int id;
+
+    for (int num=atomnum_start; num<atomnum_end; num++)
+    {       
+        for(int i=0;i<3;i++)
+        {
+            pos[i] = buffer[num].pos[i];
+            momenta[i] = buffer[num].momenta[i];
+        }
+        id = buffer[num].id;
+        
+        // 将原子分配至对应的细胞中
+        //  if(getMyRank()==2){
+        //     printf("num :%d \n",num );
+        //     printf("pos: %g,%g,%g\n",pos[0],pos[1],pos[2] );
+        //     printf("momenta: %g,%g,%g\n",momenta[0],momenta[1],momenta[2] );
+        // }
+        assignAtom(id, pos, sys, momenta);    
+    }
+}
+

@@ -58,6 +58,9 @@ void initComm(DataComm** comm, struct SpacialStr* space, struct CellStr* cells){
     datacomm->sharedCellNum[Z_NEG]  = xyzCellNum[0]*xyzCellNum[1];
     datacomm->sharedCellNum[Z_POS]  = xyzCellNum[0]*xyzCellNum[1];
 
+    datacomm->smsize = 2*(xyzCellNum[1]*xyzCellNum[2]+xyzCellNum[0]*xyzCellNum[2]
+        +xyzCellNum[0]*xyzCellNum[1]);
+
    	for (int dimen=0; dimen<6; dimen++){
       datacomm->commCells[dimen] = findCommCells(cells, dimen, datacomm->commCellNum[dimen]);
       datacomm->sharedCells[dimen] = findSMCells(cells, dimen, datacomm->sharedCellNum[dimen]);
@@ -147,7 +150,7 @@ int* findSMCells(struct CellStr* cells, enum Neighbor dimen, int num){
 }
 
 // 将待发送的原子数据加入缓冲区内,返回加入缓冲区内的数据个数
- int addSendData(struct SystemStr* sys, void* buf, enum Neighbor dimen){
+int addSendData(struct SystemStr* sys, void* buf, enum Neighbor dimen){
 
 	int num = 0;
    	AtomData* buffer = (AtomData*) buf; // 可改进为拥有自己的缓冲区
@@ -185,6 +188,7 @@ int* findSMCells(struct CellStr* cells, enum Neighbor dimen, int num){
    	for (int nCell=0; nCell<commCellNum; nCell++)
    	{
       	int cell = commCells[nCell];
+
       	for (int n=cell*MAXPERCELL,count=0; count<sys->cells->atomNum[cell]; n++,count++)
       	{
       		for(int i=0;i<3;i++){

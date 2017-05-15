@@ -38,14 +38,10 @@ int main(int argc, char** argv){
 	//sleep(5);
 	System* sys = initSystem(para);
 
-	int smBufSize = (sys->cells->xyzCellNum[0]*sys->cells->xyzCellNum[1]*
-		sys->cells->xyzCellNum[2]-(sys->cells->xyzCellNum[0]-2)*
-		(sys->cells->xyzCellNum[1]-2)*(sys->cells->xyzCellNum[2]-2))*
-		MAXPERCELL*sizeof(AtomData);
-
+	int smBufSize = sys->datacomm->smsize*MAXPERCELL*sizeof(AtomData);
 
 	//printf("size: %d\n",sys->datacomm->bufSize );
-	MPI_Win_allocate_shared(smBufSize, sizeof(char),
+	MPI_Win_allocate_shared(smBufSize+6*sizeof(int), sizeof(char),
           MPI_INFO_NULL,MPI_COMM_WORLD, &sys->smBuf, &sys->win1);
 	MPI_Win_allocate_shared(sys->datacomm->bufSize+2*sizeof(int), sizeof(char),
           MPI_INFO_NULL,MPI_COMM_WORLD, &sys->usrBuf, &sys->win2);
