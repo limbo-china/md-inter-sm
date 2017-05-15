@@ -487,22 +487,42 @@ void processSmData(struct SystemStr* sys, void *smbuf, enum Neighbor dimen){
     double3 momenta; //原子动量
     int id;
 
+    int* spacePos = sys->space->position;
+    int* spaceNum = sys->space->globalProcNum;
+
+    double3 boundaryAdjust;
+    for(int i=0;i<3;i++)
+        boundaryAdjust[i]= 0.0;
+    
+    if(spacePos[0] == 0 && dimen == X_NEG)
+        boundaryAdjust[0] = sys->space->globalLength[0];
+    if(spacePos[0] == spaceNum[0]-1 && dimen == X_POS)
+        boundaryAdjust[0] = -1.0*sys->space->globalLength[0];
+    if(spacePos[1] == 0 && dimen == Y_NEG)
+        boundaryAdjust[1] = sys->space->globalLength[1];
+    if(spacePos[1] == spaceNum[1]-1 && dimen == Y_POS)
+        boundaryAdjust[1] = -1.0*sys->space->globalLength[1];
+    if(spacePos[2] == 0 && dimen == Z_NEG)
+        boundaryAdjust[2] = sys->space->globalLength[2];
+    if(spacePos[2] == spaceNum[2]-1 && dimen == Z_POS)
+        boundaryAdjust[2] = -1.0*sys->space->globalLength[2];
+
     //printf("rank:%d test1\n ",getMyRank());
     for (int num=atomnum_start; num<atomnum_end; num++)
     {       
         for(int i=0;i<3;i++)
         {
-            pos[i] = buffer[num].pos[i];
+            pos[i] = buffer[num].pos[i]+boundaryAdjust[i];
             momenta[i] = buffer[num].momenta[i];
         }
         id = buffer[num].id;
         
         // 将原子分配至对应的细胞中
-         if(getMyRank()==1){
-            printf("num :%d \n",num );
-            printf("pos: %g,%g,%g\n",pos[0],pos[1],pos[2] );
-            printf("momenta: %g,%g,%g\n",momenta[0],momenta[1],momenta[2] );
-        }
+        //  if(getMyRank()==1){
+        //     printf("num :%d \n",num );
+        //     printf("pos: %g,%g,%g\n",pos[0],pos[1],pos[2] );
+        //     printf("momenta: %g,%g,%g\n",momenta[0],momenta[1],momenta[2] );
+        // }
 
         assignAtom(id, pos, sys, momenta);    
     }
