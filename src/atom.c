@@ -314,7 +314,7 @@ void adjustAtoms(struct SystemStr* sys){
        printf("2\n");
        MPI_Win_shared_query(sys->win1,pos_neighbor, &r2, &t2, &smbuf2);
        processSmData(sys, smbuf2, neg_dimen);
-       printf("3\n");
+       printf("rank:%d 3\n",getMyRank());
        MPI_Win_fence(0,sys->win1); 
         printf("4\n");
         MPI_Win_shared_query(sys->win2,neg_neighbor, &r1, &t1, &getbuf1);
