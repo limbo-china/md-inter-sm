@@ -316,7 +316,7 @@ void adjustAtoms(struct SystemStr* sys){
        processSmData(sys, smbuf2, neg_dimen);
        printf("3\n");
        MPI_Win_fence(0,sys->win1); 
-  
+        printf("4\n");
         MPI_Win_shared_query(sys->win2,neg_neighbor, &r1, &t1, &getbuf1);
         
         //printf("%d \n",recv );
@@ -475,7 +475,7 @@ void processSmData(struct SystemStr* sys, void *smbuf, enum Neighbor dimen){
     char *start =(char *)smbuf;
     memcpy((char *)&atomnum_end,start+dimen*sizeof(int),sizeof(int));
 
-    
+
     if(dimen == 0)
         atomnum_start =0;
     else

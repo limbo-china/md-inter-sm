@@ -18,11 +18,11 @@ int main(int argc, char** argv){
 	MPI_Init(&argc, &argv);
 	initRank();
 
-	char processor_name[20];
-	int name_len;
-	MPI_Get_processor_name(processor_name, &name_len);
+	// char processor_name[20];
+	// int name_len;
+	// MPI_Get_processor_name(processor_name, &name_len);
 
-	fprintf(stdout, "%s\n",processor_name);
+	// fprintf(stdout, "%s\n",processor_name);
 	//fprintf(stdout, "rankNums: %d\n", getRankNums());
 	//fprintf(stdout, "myRank: %d\n", getMyRank());
 
