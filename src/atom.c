@@ -308,12 +308,13 @@ void adjustAtoms(struct SystemStr* sys){
         // 调用mpi_sendrecv函数，与邻居进程发送与接收原子数据
         //printf("1\n");
 
+       printf("1\n");
        MPI_Win_shared_query(sys->win1,neg_neighbor, &r1, &t1, &smbuf1);
        processSmData(sys, smbuf1, pos_dimen);
-
+       printf("2\n");
        MPI_Win_shared_query(sys->win1,pos_neighbor, &r2, &t2, &smbuf2);
        processSmData(sys, smbuf2, neg_dimen);
-
+       printf("3\n");
        MPI_Win_fence(0,sys->win1); 
   
         MPI_Win_shared_query(sys->win2,neg_neighbor, &r1, &t1, &getbuf1);
@@ -474,11 +475,12 @@ void processSmData(struct SystemStr* sys, void *smbuf, enum Neighbor dimen){
     char *start =(char *)smbuf;
     memcpy((char *)&atomnum_end,start+dimen*sizeof(int),sizeof(int));
 
+    
     if(dimen == 0)
         atomnum_start =0;
     else
         memcpy((char *)&atomnum_start,start+(dimen-1)*sizeof(int),sizeof(int));
-
+    printf("atomnum_start:%d atomnum_end:%d\n ",atomnum_start,atomnum_end);
     AtomData* buffer = (AtomData*) (smbuf+6*sizeof(int)); 
 
     double3 pos; //原子坐标
