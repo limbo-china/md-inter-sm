@@ -487,6 +487,7 @@ void processSmData(struct SystemStr* sys, void *smbuf, enum Neighbor dimen){
     double3 momenta; //原子动量
     int id;
 
+    printf("rank:%d test1\n ",getMyRank());
     for (int num=atomnum_start; num<atomnum_end; num++)
     {       
         for(int i=0;i<3;i++)
@@ -502,8 +503,9 @@ void processSmData(struct SystemStr* sys, void *smbuf, enum Neighbor dimen){
         //     printf("pos: %g,%g,%g\n",pos[0],pos[1],pos[2] );
         //     printf("momenta: %g,%g,%g\n",momenta[0],momenta[1],momenta[2] );
         // }
-        printf("rank:%d test\n ",getMyRank());
+
         assignAtom(id, pos, sys, momenta);    
     }
+     printf("rank:%d test2\n ",getMyRank());
 }
 
