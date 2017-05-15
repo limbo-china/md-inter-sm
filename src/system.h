@@ -33,8 +33,8 @@ typedef struct SystemStr
 
    	Atom* atoms;          // 存储原子的相关信息数据
 
-   	char* smbuf ;	// 共享缓冲区起始地址
-	char* usrbuf;
+   	char* smBuf ;	// 共享缓冲区起始地址
+	char* usrBuf;
 		
 	MPI_Win win1;	// 窗口1
 	MPI_Win win2;	// 窗口2
