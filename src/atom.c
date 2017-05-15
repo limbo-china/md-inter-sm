@@ -308,15 +308,15 @@ void adjustAtoms(struct SystemStr* sys){
         // 调用mpi_sendrecv函数，与邻居进程发送与接收原子数据
         //printf("1\n");
 
-       printf("1\n");
+    
        MPI_Win_shared_query(sys->win1,neg_neighbor, &r1, &t1, &smbuf1);
        processSmData(sys, smbuf1, pos_dimen);
-       printf("2\n");
+
        MPI_Win_shared_query(sys->win1,pos_neighbor, &r2, &t2, &smbuf2);
        processSmData(sys, smbuf2, neg_dimen);
-       printf("rank:%d 3\n",getMyRank());
+ 
        MPI_Win_fence(0,sys->win1); 
-        printf("4\n");
+
         MPI_Win_shared_query(sys->win2,neg_neighbor, &r1, &t1, &getbuf1);
         
         //printf("%d \n",recv );
